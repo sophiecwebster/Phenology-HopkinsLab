@@ -83,4 +83,15 @@ for(j in 1:nrow(latlon)) {
                              internal = TRUE, force = T, silent = T)
   climate.data <- climate$data
 
+  #Pull out month and day info
+  
+  date.list <- c()
+  for(year in 1:length(years)){
+    DOY <- climate.data$yday[climate.data$year == years[year]]
+    date <- as.Date(DOY, origin = paste0(years[year], "-01-01"))
+    date.list <- c(date.list, as.character(date))
+  }
+  date.list <- as.Date(date.list)
+  month <- as.numeric(format(date.list, "%m"))
+  climate.data$month <- month
 }
