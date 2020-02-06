@@ -70,7 +70,7 @@ for(j in 1:nrow(latlon)) {
   print(j)
 
   # Variables
-  years <- 1980:2017
+  years <- 1980:2018
   Latitude <- latlon[j, "lat"]
   Longitude <- latlon[j, "lon"]
   
