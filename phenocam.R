@@ -78,12 +78,12 @@ hallo %>% ggplot(aes(springyd, gspringy)) + geom_point(alpha = 0.5, color = "gre
   #scale_x_date()
 
 
-# eventually
+# eventually:
 # need to convert from factor to date
 var_[,date:=as.Date(date)]
 
+
 # BIG QUESTION: how to figure out when leaf-out is? when dGCC/dT is highest?
-how
 
 # find the mean winter minimum and the mean summer maximum. Subtract the winter
 # value from the summer value. Find 10% of the difference and add it to the
