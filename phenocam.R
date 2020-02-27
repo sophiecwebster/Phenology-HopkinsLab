@@ -82,5 +82,12 @@ hallo %>% ggplot(aes(springyd, gspringy)) + geom_point(alpha = 0.5, color = "gre
 # need to convert from factor to date
 var_[,date:=as.Date(date)]
 
+# BIG QUESTION: how to figure out when leaf-out is? when dGCC/dT is highest?
 
+# find the mean winter minimum and the mean summer maximum. Subtract the winter
+# value from the summer value. Find 10% of the difference and add it to the
+# winter value- this should be the GCC value of the day of budburst
+# https://phenocam.sr.unh.edu/education/U3_PhenoCamData_Activity_GraphingAnalyzingPhenoCamData_Final.pdf
+# https://www.biorxiv.org/content/biorxiv/early/2019/09/18/771477.full.pdf
+# above, "u" was the proxy for budburst, pg 6-7
 
