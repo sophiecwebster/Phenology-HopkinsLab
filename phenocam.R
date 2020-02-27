@@ -53,9 +53,10 @@ ts_sites <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat"
 
 time_series <- c()
 for(i in 1:nrow(sites_rois)) {
-  site <- ts_sites$site
-  ts <- get_pheno_ts(site = ts_sites$site[i], vegType = ts_sites$roitype[i], roiID = ts_sites$sequence_number[i], type = '1day')
-  time_series <- c(ts)
+  site <- ts_sites$site[i]
+  ts <- get_pheno_ts(site = ts_sites$site[i], vegType = ts_sites$roitype[i], roiID = ts_sites$sequence_number[i], type = '3day')
+ts$Site_Name <- site
+time_series <- rbind(time_series, ts)
 }
 
 
