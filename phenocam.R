@@ -12,6 +12,7 @@ library(jpeg)
 library(data.table)
 library(fields)
 library(raster)
+library(phenopix)
 library(data.table)
 
 meta <- get_phenos()
@@ -47,7 +48,7 @@ ts_sites <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat"
     filter(!is.na(roitype))
 
 
-#for loop it! do we want this down to 1 day or 3 day res?
+#for loop it! do we want this down to 1 day or 3 day res? 3 day is fine
 # going thru everything but not saving it all -- only last guy
 # want site name to be level name of this mega factor? i think?
 
@@ -59,6 +60,19 @@ ts$Site_Name <- site
 time_series <- rbind(time_series, ts)
 }
 
+# Pulling out only date, year, doy, gcc_mean, midday gcc, gcc 90, and site name
+trimmed <- time_series[,c(1:3,9,17,21,35,36)]
+
+# Creating smaller subsection from January to September 2013 to test out on (it has all GCC midday values intact)
+### Can I safely remove all NAs? ###
+thirteen <- trimmed[c(85:162),c(3:4)]
+
+# Fitting Adapted from Willamette; need to make a zoo object so phenopix can read it (just organizational formality)
+zoom <- zoo(thirteen$midday_gcc, order.by = index(thirteen$doy), frequency=NULL)
+k_fit <- KlostermanFit(zoom, which = "light", uncert = T, nrep = 100, ncores = 4)
+
+# Extract PhenoPhases
+pp_kl <- PhenoExtract(k_fit, method = "klosterman", uncert = T)
 
 # now just checking out alligatorriver site to see how it looks/graphin'
 gator <- get_pheno_ts(site = sites_rois$site[1], vegType = sites_rois$roitype[1], roiID = sites_rois$sequence_number[1], type = '1day') %>% 
