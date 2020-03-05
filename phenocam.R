@@ -75,6 +75,10 @@ k_fit <- KlostermanFit(zoom, which = "light", uncert = T, nrep = 100, ncores = 4
 pp_kl <- PhenoExtract(k_fit, method = "klosterman", uncert = T)
 pp_st <- PhenoDeriv(k_fit$fit$predicted, fit = k_fit$fit)
 
+# pp_st returns "sos" for start of season -- is this what we're looking for?
+
+
+
 # now just checking out alligatorriver site to see how it looks/graphin'
 gator <- get_pheno_ts(site = sites_rois$site[1], vegType = sites_rois$roitype[1], roiID = sites_rois$sequence_number[1], type = '1day') %>% 
     filter(!is.na(gcc_90))
