@@ -60,22 +60,51 @@ ts$Site_Name <- site
 time_series <- rbind(time_series, ts)
 }
 
+time_series <- filter(!is.na(time))
 # Pulling out only date, year, doy, gcc_mean, midday gcc, gcc 90, and site name
 trimmed <- time_series[,c(1:3,9,17,21,35,36)]
 
-# Creating smaller subsection from January to September 2013 to test out on (it has all GCC midday values intact)
-### Can I safely remove all NAs? ###
+# Removing where midday gcc is equal to NA
+pd <- trimmed %>% filter(!is.na(midday_gcc))
+
+### Let's Loop It! And Extract Klosterman Green-Up Time for Each Site! ###
+# getting ready
+site_list <- unique(pd$Site_Name)
+output_df <- c()
+
+for(sites in site_list){
+  subset <- pd[pd$Site_Name == site_list[sites],]
+  years <- unique(pd$year)
+  site_mns <- c()
+  for(y in years) {
+    subset_yr <- subset[subset$year==y,]
+    
+    # extracting gcc
+    
+    # keep track
+  }
+}
+
+
+
+
+#Creating smaller subsection from January to September 2013 to test out on (it
+#has all GCC midday values intact) ## Can I safely remove all NAs? ###
 thirteen <- trimmed[c(85:162),c(3:4)]
 
-# Fitting Adapted from Willamette; need to make a zoo object so phenopix can read it (just organizational formality)
+# Fitting Adapted from Willamette; need to make a zoo object so phenopix can
+# read it (just organizational formality)
 zoom <- zoo(thirteen$midday_gcc, order.by = index(thirteen$doy), frequency=NULL)
-k_fit <- KlostermanFit(zoom, which = "light", uncert = T, nrep = 100, ncores = 4)
+k_fit <- KlostermanFit(zoom, which = "light", uncert = F, nrep = 100, ncores = 4)
 
 # Extract PhenoPhases
-pp_kl <- PhenoExtract(k_fit, method = "klosterman", uncert = T)
+pp_kl <- PhenoExtract(k_fit, method = "klosterman", uncert = F)
 pp_st <- PhenoDeriv(k_fit$fit$predicted, fit = k_fit$fit)
 
 # pp_st returns "sos" for start of season -- is this what we're looking for?
+# pull sos for last 5 years, find SD
+# Klosterman, green-up
+
 
 
 
