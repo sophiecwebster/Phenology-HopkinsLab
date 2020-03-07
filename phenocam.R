@@ -60,30 +60,43 @@ ts$Site_Name <- site
 time_series <- rbind(time_series, ts)
 }
 
-time_series <- filter(!is.na(time))
+# time_series <- filter(!is.na(time))
 # Pulling out only date, year, doy, gcc_mean, midday gcc, gcc 90, and site name
 trimmed <- time_series[,c(1:3,9,17,21,35,36)]
 
-# Removing where midday gcc is equal to NA
+# Removing where midday gcc is equal to NA (and also doy, year, and Site_Name)
 pd <- trimmed %>% filter(!is.na(midday_gcc))
+pd <- pd %>% filter(!is.na(doy))
+pd <- pd %>% filter(!is.na(year))
+pd <- pd %>% filter(!is.na(Site_Name))
 
 ### Let's Loop It! And Extract Klosterman Green-Up Time for Each Site! ###
+
 # getting ready
 site_list <- unique(pd$Site_Name)
 output_df <- c()
 
-for(sites in site_list){
-  subset <- pd[pd$Site_Name == site_list[sites],]
+for(sites in site_list) {
+  subset <- pd[pd$Site_Name == site_list[i],]
   years <- unique(pd$year)
   site_mns <- c()
+  
   for(y in years) {
     subset_yr <- subset[subset$year==y,]
-    
     # extracting gcc
+    hi <- zoo(subset_yr$midday_gcc, order.by = index(subset_yr$doy), frequency=NULL)
+    yo <- KlostermanFit(hi, which = "light", uncert = F, nrep = 100, ncores = 4)
+    gcc <- PhenoExtract(yo, method = "klosterman", uncert = F)
+    gcc <- gcc$metrics[2,1]
     
-    # keep track
+    # concatenate
+    site_mns <- c(site_mns, gcc)
   }
+  # save out
+  added_row <- c(site_list[site], mean(site_mns), sd(site_mns))
+  output_df <- rbind(output_df, added_row)
 }
+
 
 
 
