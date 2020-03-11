@@ -42,7 +42,7 @@ all.sites <- as.data.frame(meta)[choose.sites,]
 # obtaining the list of all the available ROI's on the PhenoCam server
 rois <- get_rois()
 
-sites_rois <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat", "lon" = "lon"))
+# sites_rois <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat", "lon" = "lon"))
 
 ts_sites <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat", "lon" = "lon")) %>%
     filter(!is.na(roitype))
@@ -53,7 +53,7 @@ ts_sites <- rois %>% right_join(all.sites, by = c("site" = "site", "lat" = "lat"
 # want site name to be level name of this mega factor? i think?
 
 time_series <- c()
-for(i in 1:nrow(sites_rois)) {
+for(i in 1:nrow(ts_sites)) {
   site <- ts_sites$site[i]
   ts <- get_pheno_ts(site = ts_sites$site[i], vegType = ts_sites$roitype[i], roiID = ts_sites$sequence_number[i], type = '3day')
 ts$Site_Name <- site
@@ -76,24 +76,34 @@ pd <- pd %>% filter(!is.na(Site_Name))
 site_list <- unique(pd$Site_Name)
 output_df <- c()
 
-for(sites in site_list) {
-  subset <- pd[pd$Site_Name == site_list[i],]
-  years <- unique(pd$year)
+# for(i in 1:length(site_list)) {
+for(i in 1:3) { 
+  print(site_list[i])
+  subset <- pd[pd$Site_Name == site_list[i], ]
+  years <- unique(subset$year)
   site_mns <- c()
-  
+
   for(y in years) {
+    
+    print(y)
+    
     subset_yr <- subset[subset$year==y,]
-    # extracting gcc
-    hi <- zoo(subset_yr$midday_gcc, order.by = index(subset_yr$doy), frequency=NULL)
-    yo <- KlostermanFit(hi, which = "light", uncert = F, nrep = 100, ncores = 4)
-    gcc <- PhenoExtract(yo, method = "klosterman", uncert = F)
-    gcc <- gcc$metrics[2,1]
+    
+    if(subset_yr$doy[1] > 60 | subset_yr$doy[nrow(subset_yr)] < 250){next}
+    # extracting gcc -- do i need this [y] in the next line?
+    zoom <- zoo(subset_yr$midday_gcc, order.by = index(subset_yr$doy), frequency=NULL)
+    index(zoom) <- subset_yr$doy
+    zoom <- na.approx(zoom)
+    k_fit <- KlostermanFit(zoom, which = "light", nrep = 100, ncores='all', sf=quantile(zoom, probs=c(0.05, 0.95), na.rm=TRUE))
+    gcc <- PhenoExtract(k_fit, uncert = F, plot = F)
+    gcc <- as.data.frame(gcc$metrics)
+    gcc <- gcc[1,1]
     
     # concatenate
     site_mns <- c(site_mns, gcc)
   }
   # save out
-  added_row <- c(site_list[site], mean(site_mns), sd(site_mns))
+  added_row <- c(site_list[i], mean(site_mns, na.rm = T), sd(site_mns, na.rm = T))
   output_df <- rbind(output_df, added_row)
 }
 
@@ -102,7 +112,7 @@ for(sites in site_list) {
 
 
 #Creating smaller subsection from January to September 2013 to test out on (it
-#has all GCC midday values intact) ## Can I safely remove all NAs? ###
+#has all GCC midday values intact)
 thirteen <- trimmed[c(85:162),c(3:4)]
 
 # Fitting Adapted from Willamette; need to make a zoo object so phenopix can
@@ -122,7 +132,7 @@ pp_st <- PhenoDeriv(k_fit$fit$predicted, fit = k_fit$fit)
 
 
 # now just checking out alligatorriver site to see how it looks/graphin'
-gator <- get_pheno_ts(site = sites_rois$site[1], vegType = sites_rois$roitype[1], roiID = sites_rois$sequence_number[1], type = '1day') %>% 
+gator <- get_pheno_ts(site = ts_sites$site[1], vegType = ts_sites$roitype[1], roiID = ts_sites$sequence_number[1], type = '1day') %>% 
     filter(!is.na(gcc_90))
 
 gator$date <- as.Date(gator$date)
