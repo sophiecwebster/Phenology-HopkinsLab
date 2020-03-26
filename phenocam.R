@@ -77,7 +77,7 @@ site_list <- unique(pd$Site_Name)
 output_df <- c()
 
 # for(i in 1:length(site_list)) {
-for(i in 1:3) { 
+for(i in 1:length(site_list)) { 
   print(site_list[i])
   subset <- pd[pd$Site_Name == site_list[i], ]
   years <- unique(subset$year)
